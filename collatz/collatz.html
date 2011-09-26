@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<title>das Collatz-Problem</title>
+<style type="text/css">
+body { margin:1em auto; width: 960px; padding:0; }
+#content { position:relative; margin:0; width:100%; height:100%; }
+#output { font-family: monospace; }
+</style>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+google.load("visualization", "1", {packages:["corechart"]});
+</script>
+</head>
+<body>
+
+<div id="content">
+	<p>
+	<img src="http://latex.codecogs.com/png.latex?%5Csmall%20%5Cdpi%7B150%7D%20f%28n%29%3D%5Cbegin%7Bcases%7D%20n/2%20%26%20%5Ctext%7B%20if%20%7D%20n%5Cequiv%200%20%5Cpmod%202%20%5C%5C%203n&plus;1%20%26%20%5Ctext%7B%20if%20%7D%20n%5Cequiv%201%20%5Cpmod%202%20%5Cend%7Bcases%7D">
+	<p>
+	<img src="http://latex.codecogs.com/png.latex?%5Csmall%20%5Cdpi%7B150%7D%20a_%7Bi%7D%3D%5Cbegin%7Bcases%7D%20n%20%26%20%5Ctext%7B%20for%20%7D%20i%3D0%20%5C%5C%20f%28a_%7Bi-1%7D%29%20%26%20%5Ctext%7B%20for%20%7D%20i%3E0%20%5Cend%7Bcases%7D">
+	<div id="output"></div>
+	<div id="chart"></div>
+</div>
+
+<script type="text/javascript">
+
+var output = document.getElementById("output");
+var worker = new Worker("collatz-worker.js");
+var start = location.search.match(/s=(\d+)/)[1];
+
+var result_list = [parseInt(start)];
+
+worker.onmessage = function (e) {
+	var result = e.data;
+	if (result != "done") {
+		output.textContent += ", " + result;
+		result_list.push(parseInt(result));
+	}
+	else {
+		var data = new google.visualization.DataTable();
+		data.addColumn("string","in");
+		data.addColumn("number","out");
+		data.addRows(result_list.length);
+		for (var i = 1; i < result_list.length; i++) {
+			data.setValue(i-1,0,result_list[i-1]+"");
+			data.setValue(i-1,1,result_list[i]);
+		}
+		var chart = new google.visualization.LineChart(document.getElementById('chart'));
+        chart.draw(data, {width: 960, height: 500, title: 'Collatz-Reihe'});
+		google.visualization.events.addListener(chart, 'select', function(){
+			var s = chart.getSelection()[0];
+			if (!s || !s.row)
+				return;
+			location.search = "s="+ data.getValue(s.row,s.column-1);
+		});
+	}
+}
+
+
+output.textContent = start;
+worker.postMessage(start);
+
+</script>
+
+</body>
+</html>
