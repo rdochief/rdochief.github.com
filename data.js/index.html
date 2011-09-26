@@ -37,7 +37,7 @@ var schema = {
 
 var graph = new Data.Graph(schema,{persistent: true});
 
-
+/*
 graph.set({
   _id: "/person/bart",
   type: "/type/person",
@@ -65,10 +65,11 @@ graph.get('/location/springfield').set({
   citizens: ['/person/bart', '/person/homer']
 });
 
+*/
+
 graph.get('/location/springfield').get('citizens').each(function(person) {
   console.log(person.get('name'));
 });
-
 
 </script>
 
