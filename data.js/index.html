@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<title>data.js</title>
+<style type="text/css">
+body { margin:1em auto; width: 960px; padding:0; }
+#content { position:relative; margin:0; width:100%; height:100%; }
+</style>
+<script type="text/javascript" src="underscore.js"></script>
+<script type="text/javascript" src="data.js"></script>
+</head>
+<body>
+
+<div id="content">
+</div>
+
+<script type="text/javascript">
+
+var schema = {
+  "/type/person": {
+    "type": "/type/type",
+    "name": "Person",
+    "properties": {
+      "name": {"name": "Name", "unique": true, "type": "string", "required": true},
+      "origin": {"name": "Origin", "unique": true, "type": "/type/location" }
+    }
+  },
+  "/type/location": {
+    "type": "/type/type",
+    "name": "Location",
+    "properties": {
+      "name": { "name": "Name", "unique": true, "type": "string", "required": true },
+      "citizens": {"name": "Citizens", "unique": false, "type": "/type/person"}
+    }
+  }
+};
+
+var graph = new Data.Graph(schema,{persistent: true});
+
+
+graph.set({
+  _id: "/person/bart",
+  type: "/type/person",
+  name: "Bart Simpson"
+});
+
+graph.set({
+  _id: "/location/springfield",
+  name: "Springfield",
+  type: "/type/location",
+  citizens: ["/person/bart"]
+});
+
+graph.get('/person/bart')
+	.set({origin: '/location/springfield'});
+	
+graph.set({
+  _id: "/person/homer",
+  type: "/type/person",
+  name: "Homer Simpson",
+  origin: "/location/springfield",
+});
+
+graph.get('/location/springfield').set({
+  citizens: ['/person/bart', '/person/homer']
+});
+
+graph.get('/location/springfield').get('citizens').each(function(person) {
+  console.log(person.get('name'));
+});
+
+
+</script>
+
+</body>
+</html>
